@@ -11,6 +11,13 @@
 
 using namespace std;
 
+struct Keypoint {
+	int row, col;
+	float conf;
+
+	Keypoint(int r, int c, int v) : row(r), col(c), conf(v) {};
+};
+
 torch::Tensor matToTensor(const cv::Mat& image) {
 	std::vector<int64_t> dims = { 1, image.rows, image.cols, image.channels() };
 	return torch::from_blob(
@@ -29,18 +36,18 @@ cv::Mat tensorToMat(const torch::Tensor& tensor) {
 	return mat;
 }
 
-std::vector<std::tuple<int, int, float>> nms_fast(
-	int h, int w, std::vector<tuple<int, int, float>>& points, int nms_distance
+std::vector<Keypoint> nms_fast(
+	int h, int w, std::vector<Keypoint>& points, int nms_distance
 ) {
 	using std::vector;
 	using std::tuple;
 
 	vector<vector<int>> grid(h, vector<int>(w, 0));
-	vector<tuple<int, int, float>> r_points;
+	vector<Keypoint> r_points;
 	
 	// sort as per scores
-	std::sort(points.begin(), points.end(), [](tuple<int, int, float> t1, tuple<int, int, float> t2) -> bool{
-		return std::get<2>(t1) > std::get<2>(t2);
+	std::sort(points.begin(), points.end(), [](Keypoint t1, Keypoint t2) -> bool{
+		return t1.conf > t2.conf;
 		});
 	
 	/*
@@ -50,19 +57,16 @@ std::vector<std::tuple<int, int, float>> nms_fast(
 		1	= unvisited
 	*/
 	for (int i = 0; i < points.size(); i++) {
-		int row = std::get<0>(points.at(i));
-		int col = std::get<1>(points.at(i));
-	
-		grid[row][col] = 1;
+		grid[points[i].row][points[i].col] = 1;
 		
 	}
 
 	int suppressed_points = 0;
 
 	for (int i = 0; i < points.size(); i++) {
-		int row		= std::get<0>(points.at(i));
-		int col		= std::get<1>(points.at(i));
-		float val	= std::get<2>(points.at(i));
+		int row		= points[i].row;
+		int col		= points[i].col;
+		float val	= points[i].conf;
 		/*
 			supress border points by default
 		*/
@@ -77,7 +81,7 @@ std::vector<std::tuple<int, int, float>> nms_fast(
 				grid[row][col] = -1;
 				suppressed_points++;
 
-				r_points.push_back(tuple<int, int, float>(row, col, val));
+				r_points.push_back(Keypoint(row, col, val));
 			}
 
 		}
@@ -90,9 +94,9 @@ std::vector<std::tuple<int, int, float>> nms_fast(
 
 
 
-std::vector<std::tuple<int, int, float>> compute_kp(const cv::Size& img, torch::Tensor& semi ) {
+std::vector<Keypoint> compute_kp(const cv::Size& img, torch::Tensor& semi ) {
 	
-	std::vector<std::tuple<int, int, float>> points, supressed_points;
+	std::vector<Keypoint> points, supressed_points;
 
 	semi = semi.squeeze();
 	auto dense = torch::exp(semi);
@@ -120,7 +124,7 @@ std::vector<std::tuple<int, int, float>> compute_kp(const cv::Size& img, torch::
 		int row = xy_idx[i][0].item<int>();
 		int col = xy_idx[i][1].item<int>();
 
-		auto tuple = std::tuple<int, int, float>(
+		auto tuple = Keypoint(
 			row, col, heatmap[row][col].item<float>());
 
 		points.push_back(tuple);
@@ -131,8 +135,8 @@ std::vector<std::tuple<int, int, float>> compute_kp(const cv::Size& img, torch::
 	cv::Mat s_heatmap = cv::Mat::zeros(heatmap.size(0), heatmap.size(1), CV_8UC1);
 
 	for (int i = 0; i < supressed_points.size(); i++) {
-		int row = std::get<0>(supressed_points.at(i));
-		int col = std::get<1>(supressed_points.at(i));
+		int row = supressed_points.at(i).row;
+		int col = supressed_points.at(i).col;
 
 		s_heatmap.at<uchar>(row, col) = 255;
 	}
@@ -179,7 +183,7 @@ int main()
 	torch::Tensor semi = outputs->elements()[0].toTensor();
 	torch::Tensor desc = outputs->elements()[1].toTensor();
 	
-	std::vector<std::tuple<int, int, float>> supressed_points = compute_kp(image.size(), semi);
+	std::vector<Keypoint> supressed_points = compute_kp(image.size(), semi);
 
 
 	// Descriptors
@@ -188,14 +192,14 @@ int main()
 	
 	auto sample_pts = torch::zeros({ 2, static_cast<int>(supressed_points.size()) });
 	for (int i = 0; i < supressed_points.size(); i++) {
-		sample_pts[0][i] = std::get<0>(supressed_points.at(i));
-		sample_pts[1][i] = std::get<1>(supressed_points.at(i));
+		sample_pts[0][i] = supressed_points.at(i).row;
+		sample_pts[1][i] = supressed_points.at(i).col;
 	}
 	/*
 		z-score points for grid zampler
 	*/
-	sample_pts[0] = (sample_pts[0] / (float(image.cols) / 2.0f)) - 1.0f;
-	sample_pts[1] = (sample_pts[1] / (float(image.rows) / 2.0f)) - 1.0f;
+	sample_pts[0] = (sample_pts[0] / (float(image.rows) / 2.0f)) - 1.0f;
+	sample_pts[1] = (sample_pts[1] / (float(image.cols) / 2.0f)) - 1.0f;
 	sample_pts = sample_pts.permute({0, 1}).contiguous();
 	sample_pts = sample_pts.view({ 1, 1, -1, 2 });
 	sample_pts = sample_pts.to(torch::kF32);
