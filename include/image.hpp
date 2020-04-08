@@ -22,7 +22,7 @@ public:
             m_image = cv::imread(fPath, 0);
             m_image.convertTo(m_image, CV_32FC1, 1.0 / 255.0f, 0);
 
-            cv::resize(m_image, m_image, cv::Size(1000, 1000));
+            //cv::resize(m_image, m_image, cv::Size(1000, 1000));
             
             m_width = m_image.cols;
             m_height = m_image.rows;

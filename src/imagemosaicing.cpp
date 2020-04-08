@@ -26,9 +26,7 @@ using std::make_shared;
 struct Keypoint {
 	int row, col;
 	float conf;
-
 	Keypoint(int r, int c, int v) : row(r), col(c), conf(v) {};
-	
 };
 
 struct Features{
@@ -145,12 +143,17 @@ std::unique_ptr<std::vector<Keypoint>> compute_keypoints(const cv::Size& img, to
 		torch::operator>=(heatmap, 0.015f), torch::zeros(1)
 		).nonzero();
 
+	auto rows = xy_idx.select(1, 0);
+	auto cols = xy_idx.select(1, 1);
+
+	auto values = torch::index(heatmap, {rows, cols});
+	
 	for (int i = 0; i < xy_idx.size(0); i++) {
-		int row = xy_idx[i][0].item<int>();
-		int col = xy_idx[i][1].item<int>();
+		int row = rows[i].item<int>();
+		int col = cols[i].item<int>();
 
 		Keypoint keypoint(
-			row, col, heatmap[row][col].item<float>());
+			row, col, values[i].item<float>());
 
 		points->push_back(std::move(keypoint));
 	}
@@ -258,24 +261,26 @@ void compute_heatmap(cv::Mat& heatmap, const shared_ptr<std::vector<Keypoint>> p
 
 int main()
 {
+
 	torch::Device device(get_device());
 	
 	shared_ptr<torch::jit::script::Module> module = load_module(
 		"C:\\Users\\dhruv\\Development\\git\\image_mosaicing\\res\\traced_superpoint_v1.pt", device);
 
 	LOG2("Main", "imread()");
-	Image img_l("C:\\Users\\dhruv\\Development\\git\\image_mosaicing\\res\\tma\\franklins_WV02.tif");
-	Image img_r("C:\\Users\\dhruv\\Development\\git\\image_mosaicing\\res\\tma\\CA228132V0108_CROPPED_2.tif");
+	Image img_l("C:\\Users\\dhruv\\Development\\git\\image_mosaicing\\res\\icl_snippet\\250.png");
+	Image img_r("C:\\Users\\dhruv\\Development\\git\\image_mosaicing\\res\\icl_snippet\\254.png");
 
 	unique_ptr<Features> features_l = compute_features(img_l, module, device);
 	unique_ptr<Features> features_r = compute_features(img_r, module, device);
 
 	LOG2(features_l->m_keypoints->size(), features_l->m_descriptors->sizes());
-	LOG2(features_r->m_keypoints->size(), features_r->m_descriptors->sizes());
+	
+	cv::Mat heatmap_l = cv::Mat::zeros(img_l.m_height, img_l.m_width, CV_8UC1);
+	//cv::Mat heatmap_r = cv::Mat::zeros(img_r.m_height, img_r.m_width, CV_8UC1);
 
-	cv::Mat heatmap_l = cv::Mat::zeros(1000, 1000, CV_8UC1);
-	cv::Mat heatmap_r = cv::Mat::zeros(1000, 1000, CV_8UC1);
-
+	compute_heatmap(heatmap_l, features_l->m_keypoints);
+	cv::imwrite("heatmap_l.png", heatmap_l);
 
 	return 0;
 }

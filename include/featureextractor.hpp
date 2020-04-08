@@ -1,0 +1,6 @@
+class FeatureExtractor() {
+public:
+	FeatureExtractor();
+
+
+}
