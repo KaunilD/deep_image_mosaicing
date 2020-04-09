@@ -27,6 +27,12 @@ set(SRCS
 
 set(HEADERS
 	${PROJECT_SOURCE_DIR}/include/imagemosaicing.hpp
+	${PROJECT_SOURCE_DIR}/include/superpointextractor.hpp
+	${PROJECT_SOURCE_DIR}/include/featureextractor.hpp
+	${PROJECT_SOURCE_DIR}/include/descriptor.hpp
+	${PROJECT_SOURCE_DIR}/include/keypoint.hpp
+	${PROJECT_SOURCE_DIR}/include/libs.hpp
+
 	${PROJECT_SOURCE_DIR}/include/image.hpp
 )
 

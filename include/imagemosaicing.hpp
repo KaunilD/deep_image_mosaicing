@@ -1,8 +1,24 @@
-﻿// Image Mosaicing.h : Include file for standard system include files,
-// or project specific include files.
+﻿#ifndef IMGMOS_H
+#define IMGMOS_H
 
-#pragma once
+#include "libs.hpp"
 
-#include <iostream>
+#include "image.hpp"
+#include "keypoint.hpp"
+#include "descriptor.hpp"
 
-// TODO: Reference additional headers your program requires here.
+#include "superpointextractor.hpp"
+
+class ImageMosaic {
+public:
+	unique_ptr<std::vector<Image>> m_images;
+	ImageMosaic() {
+		m_images = make_unique<std::vector<Image>>();
+	};
+	void addImage(const Image& t_image) {
+		assert(m_images);
+		m_images->push_back(t_image);
+	}
+};
+
+#endif IMGMOS_H

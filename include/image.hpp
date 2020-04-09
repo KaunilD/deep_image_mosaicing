@@ -1,16 +1,19 @@
-#include <iostream>
-#include <string>
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
+#ifndef IMAGE_H
+#define IMAGE_H
+
+#include "libs.hpp"
 
 class Image {
 public:
-    int m_width = 0, m_height = 0;
     cv::Mat m_image;
+
+    int     m_width = 0;
+    int     m_height = 0;
     
+
 	Image() = default;
-	Image(const std::string& fPath) {
+
+    Image(const std::string& fPath) {
         std::string ext;
 
         int pos = (int)fPath.find(".");
@@ -22,7 +25,7 @@ public:
             m_image = cv::imread(fPath, 0);
             m_image.convertTo(m_image, CV_32FC1, 1.0 / 255.0f, 0);
 
-            //cv::resize(m_image, m_image, cv::Size(1000, 1000));
+            cv::resize(m_image, m_image, cv::Size(1000, 1000));
             
             m_width = m_image.cols;
             m_height = m_image.rows;
@@ -31,9 +34,7 @@ public:
 
 private:
 
-    void read_tiff(const std::string& fPath ) {
-
-    }
+    void read_tiff(const std::string& fPath) {};
 
     bool checkFormat(const std::string& t_format)
     {
@@ -41,7 +42,9 @@ private:
             return 0;
         }
         return -1;
-    }
+    };
 
 
 };
+
+#endif IMAGE_H

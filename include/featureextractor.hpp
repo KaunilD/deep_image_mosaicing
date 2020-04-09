@@ -1,6 +1,13 @@
-class FeatureExtractor() {
+
+class FeatureExtractor {
 public:
-	FeatureExtractor();
+	FeatureExtractor() = default;
 
+	enum EType {
+		ORB,
+		SIFT,
+		SuperPoint
+	};
 
-}
+	virtual void init() = 0;
+};
