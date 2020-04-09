@@ -35,6 +35,11 @@
           "name": "OpenCV_DIR",
           "value": "C:/Users/dhruv/Development/packages/opencv-4.3.0/out/install/x64-Debug/",
           "type": "PATH"
+        },
+        {
+          "name": "Eigen3_DIR",
+          "value": "C:/Users/dhruv/Development/packages/Eigen3/cmake",
+          "type": "PATH"
         }
       ]
     }

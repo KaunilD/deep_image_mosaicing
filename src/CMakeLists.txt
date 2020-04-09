@@ -21,6 +21,7 @@ set(CUDA_PROPAGATE_HOST_FLAGS OFF)
 foreach(f ${TORCH_CXX_FLAGS})
   list(APPEND CMAKE_CUDA_FLAGS -Xcompiler ${f})
 endforeach()
+
 set(SRCS
 	"imagemosaicing.cpp"
 )

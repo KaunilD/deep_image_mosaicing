@@ -49,9 +49,9 @@ public:
 		return std::move(module);
 	}
 
-	unique_ptr<std::vector<unique_ptr<Features>>> run(const std::vector<Image>& images) {
-		std::cout << "SuperPointExtractor:: " << "run";
-		unique_ptr<std::vector<unique_ptr<Features>>> features = make_unique<std::vector<unique_ptr<Features>>>();
+	unique_ptr<std::vector<shared_ptr<Features>>> run(const std::vector<Image>& images) {
+		std::cout << "SuperPointExtractor:: " << "run" << "\n";
+		auto features = make_unique<std::vector<shared_ptr<Features>>>();
 		for (const auto& ref: images) {
 			features->push_back(std::move(computeFeatures(ref)));
 		}
@@ -69,7 +69,7 @@ public:
 		using std::tuple;
 
 		vector<vector<int>> grid(h, vector<int>(w, 0));
-		unique_ptr<vector<Keypoint>> r_points = make_unique<vector<Keypoint>>();
+		auto r_points = make_unique<vector<Keypoint>>();
 
 		// sort as per scores
 		std::sort(points->begin(), points->end(), [](Keypoint t1, Keypoint t2) -> bool {
@@ -120,8 +120,8 @@ public:
 
 
 	unique_ptr<std::vector<Keypoint>> computeKeypoints(const cv::Size& img, torch::Tensor& semi) {
-		unique_ptr<std::vector<Keypoint>> points			= make_unique<std::vector<Keypoint>>();
-		unique_ptr<std::vector<Keypoint>> supressed_points	= make_unique<std::vector<Keypoint>>();
+		auto points				= make_unique<std::vector<Keypoint>>();
+		auto supressed_points	= make_unique<std::vector<Keypoint>>();
 
 		semi = semi.squeeze();
 
@@ -184,11 +184,11 @@ public:
 		sample_pts = sample_pts.view({ 1, 1, -1, 2 });
 		sample_pts = sample_pts.to(torch::kF32);
 
-		torch::Tensor desc = torch::nn::functional::grid_sample(pred_desc, sample_pts);
+		auto desc = torch::nn::functional::grid_sample(pred_desc, sample_pts);
 		desc = desc.reshape({ D, -1 });
-		desc = desc / desc.norm();
+		desc /= desc.norm();
 
-		unique_ptr<Descriptor> descriptor(make_unique<Descriptor>());
+		unique_ptr<Descriptor> descriptor(new Descriptor(std::move(desc)));
 		
 		return descriptor;
 	}
@@ -215,7 +215,7 @@ public:
 		unique_ptr<std::vector<Keypoint>> keypoints	= computeKeypoints(image.m_image.size(), semi);
 		unique_ptr<Descriptor> descriptors			= computeDescriptors(desc, keypoints.get(), image.m_image.size());
 
-		unique_ptr<Features> f = make_unique<Features>(std::move(keypoints), std::move(descriptors));
+		auto f = make_unique<Features>(std::move(keypoints), std::move(descriptors));
 
 		return f;
 	}

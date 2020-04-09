@@ -8,6 +8,7 @@
 #include "descriptor.hpp"
 
 #include "superpointextractor.hpp"
+#include "matcher.hpp"
 
 class ImageMosaic {
 public:

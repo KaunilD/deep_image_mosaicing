@@ -6,14 +6,14 @@
 #include "descriptor.hpp"
 
 struct Features {
-	using Kp_vec	= unique_ptr<std::vector<Keypoint>>;
+	using Kp_vec	= unique_ptr<Vector1f>;
 	using Desc_vec	= unique_ptr<Descriptor>;
 
 	Kp_vec		m_keypoints;
 	Desc_vec	m_descriptors;
 
 	Features() {
-		m_keypoints		= make_unique<std::vector<Keypoint>>();
+		m_keypoints		= make_unique<Vector1f>();
 		m_descriptors	= make_unique<Descriptor>();
 	};
 

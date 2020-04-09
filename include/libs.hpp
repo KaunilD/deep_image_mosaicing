@@ -6,6 +6,8 @@
 #include <memory>
 #include <string>
 #include <vector>
+// Eigen
+#include <Eigen/Dense>
 
 // OpenCV
 #include "opencv2/imgproc.hpp"
@@ -17,6 +19,9 @@
 #include <torch/script.h>
 #include <ATen/Aten.h>
 #include <c10/cuda/CUDACachingAllocator.h>
+
+typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> MatrixXf_RM;
+typedef Eigen::Vector<float, Eigen::Dynamic> Vector1f;
 
 using namespace std;
 

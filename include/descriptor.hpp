@@ -4,16 +4,18 @@
 #include "libs.hpp"
 
 struct Descriptor {
-	using Vec2df	= std::vector<std::vector<float>>;
-	
-	unique_ptr<Vec2df> m_descp;
+	MatrixXf_RM m_descp;
 	
 	int id;
 
 	Descriptor() = default;
 
-	Descriptor(Vec2df t_descp) {
-		m_descp = make_unique<Vec2df>(t_descp.size(), std::vector<float>(t_descp.size(), 0.0f));
+	Descriptor(torch::Tensor t_descp) {
+		m_descp = MatrixXf_RM(
+			static_cast<int>(t_descp.size(0)), static_cast<int>(t_descp.size(1)));
+		
+		std::copy(t_descp.data<float>(), t_descp.data<float>() + t_descp.numel(), m_descp.data());
+
 	}
 
 };
