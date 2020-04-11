@@ -14,6 +14,7 @@ public:
 
 	Descriptor(const torch::Tensor& t_descp) {
 		assert(t_descp.sizes().size() == 1 && t_descp.size(0) > 128);
+
 		m_descp = MatrixXf_RM(1, static_cast<int>(t_descp.size(0)));
 		std::copy(
 			t_descp.data<float>(), 

@@ -105,42 +105,37 @@ SuperPointExtractor::computeKeypoints(const cv::Size& img, torch::Tensor& semi) 
 	auto points = make_unique<std::vector<Keypoint>>();
 	auto supressed_points = make_unique<std::vector<Keypoint>>();
 
-	semi = semi.squeeze();
+	auto dense	= torch::softmax(semi, 1);
 
-	auto dense = torch::exp(semi);
-	dense = dense / (torch::sum(dense, 0) + 1e-5);
+	auto nodust = dense.slice(1, 0, 64);
+	nodust = nodust.permute({ 0, 2, 3, 1 });
 
-	auto nodust = dense.narrow(0, 0, dense.size(0) - 1);
+	int H = nodust.size(1);
+	int W = nodust.size(2);
 
-	int H = static_cast<int>(img.height) / 8;
-	int W = static_cast<int>(img.width) / 8;
+	semi = nodust.contiguous().view({-1, H, W, 8, 8});
+	semi = semi.permute({0, 1, 2, 3, 4});
+	auto heatmap = semi.contiguous().view({-1, H*8, W*8});
+	
+	heatmap = heatmap.squeeze(0);
 
-	nodust = nodust.permute({ 1, 2, 0 });
+	auto yx_idx = heatmap > 0.15f;
 
-	auto heatmap = nodust.reshape({ H, W, 8, 8 });
+	yx_idx = torch::nonzero(yx_idx);
 
-	heatmap = heatmap.permute({ 0, 2, 1, 3 });
-	heatmap = heatmap.reshape({ H * 8, W * 8 });
+	auto rows = yx_idx.select(1, 0);
+	auto cols = yx_idx.select(1, 1);
 
-	auto xy_idx = heatmap.where(
-		torch::operator>=(heatmap, 0.015f), torch::zeros(1)
-		).nonzero();
-
-	auto rows = xy_idx.select(1, 0);
-	auto cols = xy_idx.select(1, 1);
-
-	auto values = torch::index(heatmap, { rows, cols });
-
-	for (int i = 0; i < xy_idx.size(0); i++) {
+	for (int i = 0; i < yx_idx.size(0); i++) {
 		int row = rows[i].item<int>();
 		int col = cols[i].item<int>();
 
 		Keypoint keypoint(
-			row, col, values[i].item<float>());
+			row, col, heatmap[row][col].item<float>());
 
 		points->push_back(std::move(keypoint));
 	}
-
+	
 	supressed_points = nms_fast(heatmap.size(0), heatmap.size(1), std::move(points), 4);
 	return supressed_points;
 };
@@ -151,29 +146,33 @@ SuperPointExtractor::computeDescriptors(
 ) {
 	// Descriptors
 	int D = pred_desc.size(1);
-	auto sample_pts = torch::zeros({ 2, static_cast<int>(keypoints->size()) });
+	auto sample_pts = torch::zeros({ static_cast<int>(keypoints->size()), 2});
 	for (int i = 0; i < keypoints->size(); i++) {
-		sample_pts[0][i] = keypoints->at(i).row;
-		sample_pts[1][i] = keypoints->at(i).col;
+		sample_pts[i][0] = keypoints->at(i).row;
+		sample_pts[i][1] = keypoints->at(i).col;
 	}
+	sample_pts = sample_pts.to(torch::kFloat);
+
+	auto grid = torch::zeros({ 1, 1, sample_pts.size(0), 2 });
+	
 	/*
 		z-score points for grid zampler
 	*/
-	sample_pts[0] = (sample_pts[0] / (float(img.height) / 2.0f)) - 1.0f;
-	sample_pts[1] = (sample_pts[1] / (float(img.width) / 2.0f)) - 1.0f;
+	grid[0][0].slice(1, 0, 1) = 2.0f * sample_pts.slice(1, 1, 2) / (float(img.width) - 1.0f); // xs
+	grid[0][0].slice(1, 1, 2) = 2.0f * sample_pts.slice(1, 0, 1) / (float(img.height) - 1.0f); // ys
+	
+	auto desc = torch::grid_sampler(pred_desc, grid, 0, 0, false);
+	desc = desc.squeeze(0).squeeze(1);
 
-	sample_pts = sample_pts.permute({ 0, 1 }).contiguous();
-	sample_pts = sample_pts.view({ 1, 1, -1, 2 });
-	sample_pts = sample_pts.to(torch::kF32);
+	auto desc_n = torch::norm(desc, 2, 1);
+	desc = desc.div(torch::unsqueeze(desc_n, 1));
 
-	auto desc = torch::nn::functional::grid_sample(pred_desc, sample_pts);
-	desc = desc.reshape({ D, -1 });
-	desc /= desc.norm(); // 256xcols
-
+	desc = desc.transpose(0, 1).contiguous();
 
 	unique_ptr<std::vector<Descriptor>> descriptors(new std::vector<Descriptor>());
+	
 	for (int i = 0; i < desc.size(0); i++) {
-		Descriptor descriptor(desc[0]);
+		Descriptor descriptor(desc[i]);
 		descriptors->push_back(std::move(descriptor));
 	}
 
@@ -197,11 +196,11 @@ SuperPointExtractor::computeFeatures(const Image& image) {
 	auto semi = outputs->elements()[0].toTensor().to(torch::kCPU);
 	auto desc = outputs->elements()[1].toTensor().to(torch::kCPU);
 
+	
 	unique_ptr<std::vector<Keypoint>> keypoints = computeKeypoints(image.m_image.size(), semi);
 	unique_ptr<std::vector<Descriptor>> descriptors = computeDescriptors(desc, keypoints.get(), image.m_image.size());
 
 	auto f = make_unique<Features>(std::move(keypoints), std::move(descriptors));
-
 	return f;
 };
 
