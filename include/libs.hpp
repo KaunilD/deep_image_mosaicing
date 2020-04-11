@@ -21,7 +21,6 @@
 #include <c10/cuda/CUDACachingAllocator.h>
 
 typedef Eigen::Matrix<float, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> MatrixXf_RM;
-typedef Eigen::Vector<float, Eigen::Dynamic> Vector1f;
 
 using namespace std;
 

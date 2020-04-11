@@ -1,4 +1,3 @@
-
 class FeatureExtractor {
 public:
 	FeatureExtractor() = default;

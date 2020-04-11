@@ -4,11 +4,15 @@
 #include "libs.hpp"
 
 #include "image.hpp"
-#include "keypoint.hpp"
-#include "descriptor.hpp"
+#include "dtypes/keypoint.hpp"
+#include "dtypes/descriptor.hpp"
 
-#include "superpointextractor.hpp"
-#include "matcher.hpp"
+#include "extractor/superpointextractor.hpp"
+#include "matcher/bfmatcher.hpp"
+
+/*
+	WIP
+*/
 
 class ImageMosaic {
 public:

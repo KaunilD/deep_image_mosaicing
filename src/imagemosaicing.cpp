@@ -20,8 +20,11 @@ int main()
 	SuperPointExtractor superPointExtractor("C:\\Users\\dhruv\\Development\\git\\image_mosaicing\\res\\traced_superpoint_v1.pt");
 	shared_ptr<std::vector<shared_ptr<Features>>> features = superPointExtractor.run({img_l, img_r});
 
-	//Matcher matcher(Matcher::BFMatcher);
-	//matcher.run(features->at(0), features->at(1));
+	BFMatcher bfmatcher;
 
+	std::vector<MatchPair> matches = bfmatcher.run(
+		*features->at(0)->m_descriptors.get(), *features->at(1)->m_descriptors.get());
+
+	std::cout << matches.size() << "\n";
 	return 0;
 }

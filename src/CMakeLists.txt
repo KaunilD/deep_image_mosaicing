@@ -23,18 +23,29 @@ foreach(f ${TORCH_CXX_FLAGS})
 endforeach()
 
 set(SRCS
+	"extractor/superpointextractor.cpp"
+	"matcher/bfmatcher.cpp"
 	"imagemosaicing.cpp"
 )
 
 set(HEADERS
-	${PROJECT_SOURCE_DIR}/include/imagemosaicing.hpp
-	${PROJECT_SOURCE_DIR}/include/superpointextractor.hpp
-	${PROJECT_SOURCE_DIR}/include/featureextractor.hpp
-	${PROJECT_SOURCE_DIR}/include/descriptor.hpp
-	${PROJECT_SOURCE_DIR}/include/keypoint.hpp
-	${PROJECT_SOURCE_DIR}/include/libs.hpp
+	
+	${PROJECT_SOURCE_DIR}/include/extractor/featureextractor.hpp
+	${PROJECT_SOURCE_DIR}/include/extractor/superpointextractor.hpp
 
+	${PROJECT_SOURCE_DIR}/include/matcher/matcher.hpp
+	${PROJECT_SOURCE_DIR}/include/matcher/bfmatcher.hpp
+
+	${PROJECT_SOURCE_DIR}/include/dtypes/descriptor.hpp
+	${PROJECT_SOURCE_DIR}/include/dtypes/features.hpp
+	${PROJECT_SOURCE_DIR}/include/dtypes/keypoint.hpp
+	${PROJECT_SOURCE_DIR}/include/dtypes/matchpair.hpp
+	
+	${PROJECT_SOURCE_DIR}/include/utils.hpp
+	${PROJECT_SOURCE_DIR}/include/libs.hpp
 	${PROJECT_SOURCE_DIR}/include/image.hpp
+
+	${PROJECT_SOURCE_DIR}/include/imagemosaicing.hpp
 )
 
 if(WIN32)
