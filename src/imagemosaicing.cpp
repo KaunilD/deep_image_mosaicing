@@ -44,7 +44,7 @@ int main()
 	cv::imwrite("heatmap_r.png", heatmap);
 
 
-	BFMatcher bfmatcher;
+	BFMatcher bfmatcher(true);
 	std::vector<MatchPair> matches = bfmatcher.run(
 		*features->at(0)->m_descriptors.get(), *features->at(1)->m_descriptors.get());
 

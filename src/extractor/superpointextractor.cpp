@@ -164,8 +164,8 @@ SuperPointExtractor::computeDescriptors(
 	auto desc = torch::grid_sampler(pred_desc, grid, 0, 0, false);
 	desc = desc.squeeze(0).squeeze(1);
 
-	auto desc_n = torch::norm(desc, 2, 1);
-	desc = desc.div(torch::unsqueeze(desc_n, 1));
+	auto dn = torch::norm(desc, 2, 1);
+	desc = desc.div(torch::unsqueeze(dn, 1));
 
 	desc = desc.transpose(0, 1).contiguous();
 
@@ -198,8 +198,7 @@ SuperPointExtractor::computeFeatures(const Image& image) {
 	auto dn = torch::norm(desc, 2, 1);
 	desc = desc.div(torch::unsqueeze(dn, 1));
 
-	std::cout << semi.sizes() << "\n";
-	std::cout << desc.norm(2) << "\n";
+	std::cout << semi.sizes() << " " << desc.sizes() << "\n";
 
 	unique_ptr<std::vector<Keypoint>> keypoints = computeKeypoints(image.m_image.size(), semi);
 	unique_ptr<std::vector<Descriptor>> descriptors = computeDescriptors(desc, keypoints.get(), image.m_image.size());
