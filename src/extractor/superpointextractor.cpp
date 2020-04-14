@@ -114,12 +114,12 @@ SuperPointExtractor::computeKeypoints(const cv::Size& img, torch::Tensor& semi) 
 	int W = nodust.size(2);
 
 	semi = nodust.contiguous().view({-1, H, W, 8, 8});
-	semi = semi.permute({0, 1, 2, 3, 4});
+	semi = semi.permute({0, 1, 3, 2, 4});
 	auto heatmap = semi.contiguous().view({-1, H*8, W*8});
 	
 	heatmap = heatmap.squeeze(0);
 
-	auto yx_idx = heatmap > 0.15f;
+	auto yx_idx = heatmap > 0.015f;
 
 	yx_idx = torch::nonzero(yx_idx);
 
@@ -195,8 +195,12 @@ SuperPointExtractor::computeFeatures(const Image& image) {
 
 	auto semi = outputs->elements()[0].toTensor().to(torch::kCPU);
 	auto desc = outputs->elements()[1].toTensor().to(torch::kCPU);
+	auto dn = torch::norm(desc, 2, 1);
+	desc = desc.div(torch::unsqueeze(dn, 1));
 
-	
+	std::cout << semi.sizes() << "\n";
+	std::cout << desc.norm(2) << "\n";
+
 	unique_ptr<std::vector<Keypoint>> keypoints = computeKeypoints(image.m_image.size(), semi);
 	unique_ptr<std::vector<Descriptor>> descriptors = computeDescriptors(desc, keypoints.get(), image.m_image.size());
 

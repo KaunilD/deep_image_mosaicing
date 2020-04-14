@@ -5,6 +5,19 @@
 
 /*
 	temp code
+	Draw matches
+	for (const auto& match: matches) {
+		auto kp1 = features->at(0)->m_keypoints->at(match.kp1);
+		auto kp2 = features->at(1)->m_keypoints->at(match.kp2);
+
+		cv::line(
+			matchmap,
+			{ kp1.row, kp1.col },
+			{ kp2.row, kp2.col },
+			cv::Scalar(255, 255, 255)
+		);
+	}
+	cv::imwrite("matchmap.png", matchmap);
 
 	
 */
@@ -35,18 +48,6 @@ int main()
 	std::vector<MatchPair> matches = bfmatcher.run(
 		*features->at(0)->m_descriptors.get(), *features->at(1)->m_descriptors.get());
 
-	for (const auto& match: matches) {
-		auto kp1 = features->at(0)->m_keypoints->at(match.kp1);
-		auto kp2 = features->at(1)->m_keypoints->at(match.kp2);
-
-		cv::line(
-			matchmap, 
-			{ kp1.row, kp1.col },
-			{ kp2.row, kp2.col },
-			cv::Scalar(255, 255, 255)
-		);
-	}
-	cv::imwrite("matchmap.png", matchmap);
 
 	std::cout << matches.size() << "\n";
 	return 0;
