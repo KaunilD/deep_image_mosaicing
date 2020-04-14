@@ -3,7 +3,7 @@
 
  ### Tasks
  - [x] Feature extractor
- - [x] Feature Matcher [1-way Brute Force with ratio test]
+ - [x] Feature Matcher [Brute Force with 2-way and ratio test]
  - [ ] RANSAC based pose estimator:
     - [ ] 7 point algorithm
     - [ ] 8 point algorithm
