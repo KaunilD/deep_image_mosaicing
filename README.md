@@ -6,7 +6,7 @@
  - [x] Feature Matcher [Brute Force with 2-way and ratio test]
  - [ ] RANSAC based pose estimator:
     - [x] 8 point algorithm
--   - [ ] 7 point algorithm
+    - [ ] 7 point algorithm
   [ ] Alignment
 - [ ] Blending
 
