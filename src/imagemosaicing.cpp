@@ -47,8 +47,10 @@ int main()
 	BFMatcher bfmatcher(true);
 	std::vector<MatchPair> matches = bfmatcher.run(
 		*features->at(0)->m_descriptors.get(), *features->at(1)->m_descriptors.get());
-
-
 	std::cout << matches.size() << "\n";
+
+	Estimator estimator;
+	estimator.estimateEightPoints(*(features->at(0)->m_keypoints).get(), *(features->at(1)->m_keypoints).get(), matches);
+
 	return 0;
 }

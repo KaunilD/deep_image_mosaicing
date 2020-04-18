@@ -36,9 +36,12 @@ set(HEADERS
 	${PROJECT_SOURCE_DIR}/include/matcher/matcher.hpp
 	${PROJECT_SOURCE_DIR}/include/matcher/bfmatcher.hpp
 
+	${PROJECT_SOURCE_DIR}/include/estimator.hpp
+
 	${PROJECT_SOURCE_DIR}/include/dtypes/descriptor.hpp
 	${PROJECT_SOURCE_DIR}/include/dtypes/features.hpp
 	${PROJECT_SOURCE_DIR}/include/dtypes/keypoint.hpp
+	${PROJECT_SOURCE_DIR}/include/dtypes/estimatorres.hpp
 	${PROJECT_SOURCE_DIR}/include/dtypes/matchpair.hpp
 	
 	${PROJECT_SOURCE_DIR}/include/utils.hpp

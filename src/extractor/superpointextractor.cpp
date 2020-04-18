@@ -57,7 +57,7 @@ SuperPointExtractor::nms_fast(int h, int w, unique_ptr<std::vector<Keypoint>> po
 
 	// sort as per scores
 	std::sort(points->begin(), points->end(), [](Keypoint t1, Keypoint t2) -> bool {
-		return t1.conf > t2.conf;
+		return t1.m_conf > t2.m_conf;
 		});
 
 	/*
@@ -67,16 +67,16 @@ SuperPointExtractor::nms_fast(int h, int w, unique_ptr<std::vector<Keypoint>> po
 		1	= unvisited
 	*/
 	for (int i = 0; i < points->size(); i++) {
-		grid[points->at(i).row][points->at(i).col] = 1;
+		grid[points->at(i).m_loc(0)][points->at(i).m_loc(1)] = 1;
 
 	}
 
 	int suppressed_points = 0;
 
 	for (int i = 0; i < points->size(); i++) {
-		int row = points->at(i).row;
-		int col = points->at(i).col;
-		float val = points->at(i).conf;
+		int row = points->at(i).m_loc(0);
+		int col = points->at(i).m_loc(1);
+		float val = points->at(i).m_conf;
 		/*
 			supress border points by default
 		*/
@@ -148,8 +148,8 @@ SuperPointExtractor::computeDescriptors(
 	int D = pred_desc.size(1);
 	auto sample_pts = torch::zeros({ static_cast<int>(keypoints->size()), 2});
 	for (int i = 0; i < keypoints->size(); i++) {
-		sample_pts[i][0] = keypoints->at(i).row;
-		sample_pts[i][1] = keypoints->at(i).col;
+		sample_pts[i][0] = keypoints->at(i).m_loc(0);
+		sample_pts[i][1] = keypoints->at(i).m_loc(1);
 	}
 	sample_pts = sample_pts.to(torch::kFloat);
 
@@ -195,9 +195,7 @@ SuperPointExtractor::computeFeatures(const Image& image) {
 
 	auto semi = outputs->elements()[0].toTensor().to(torch::kCPU);
 	auto desc = outputs->elements()[1].toTensor().to(torch::kCPU);
-	auto dn = torch::norm(desc, 2, 1);
-	desc = desc.div(torch::unsqueeze(dn, 1));
-
+	
 	std::cout << semi.sizes() << " " << desc.sizes() << "\n";
 
 	unique_ptr<std::vector<Keypoint>> keypoints = computeKeypoints(image.m_image.size(), semi);

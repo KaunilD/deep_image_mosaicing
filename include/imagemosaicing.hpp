@@ -9,6 +9,7 @@
 
 #include "extractor/superpointextractor.hpp"
 #include "matcher/bfmatcher.hpp"
+#include "estimator/estimator.hpp"
 
 /*
 	WIP
