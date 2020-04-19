@@ -7,6 +7,7 @@
  - [ ] RANSAC based pose estimator:
     - [x] 8 point algorithm
     - [ ] 7 point algorithm
+    - [ ] RANSAC
 - [ ] Alignment
 - [ ] Blending
 
