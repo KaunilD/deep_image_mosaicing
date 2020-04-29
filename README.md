@@ -3,7 +3,11 @@
 
  ### Tasks
  - [x] SuperPoint based feature extractor
- - [x] Feature Matcher [Brute Force with 2-way and ratio test]
+   -[x] Keypoint and Descriptors
+   -[x] Non Maxima Supression
+ - [x] Feature Matcher
+   -[x] 2 Way Brute Force Matcher
+   -[x] Ratio Test
  - [ ] RANSAC based pose estimator:
     - [x] 8 point algorithm
     - [ ] 7 point algorithm
